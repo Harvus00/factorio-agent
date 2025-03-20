@@ -42,6 +42,12 @@ factorio_agent = Agent(
         get_inventory
     ],
 )
+"""TODO:
+Optimize the agent's planning ability: Ensure that the agent can effectively decompose tasks and develop reasonable execution plans.
+Improve the design of function tools: Ensure that function tools can provide clear and concise information and reduce the number of interactions that agents need to make.
+Add error handling mechanisms: When the agent encounters an error during execution, it can detect and take appropriate measures in time, rather than blindly continue to try.
+**Reduce unnecessary environment queries:** Optimize the agent's logic and reduce the number of times it queries the environment.
+"""
 
 async def main():
     """Main Loop"""
