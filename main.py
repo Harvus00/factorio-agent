@@ -1,7 +1,6 @@
 import logging
 import toml
 import asyncio
-from openai import OpenAI
 from agents import Agent, Runner, set_default_openai_key
 from api.agent_tools import (
     get_available_prototypes,
@@ -27,10 +26,10 @@ logging.basicConfig(
 logger = logging.getLogger('factorio_agent')
 
 # Create an agent
-factorio_strategy_agent = Agent(
+factorio_agent = Agent(
     name="Factorio Agent",
     handoff_description="Specialist agent for playing Factorio.",
-    instructions=config["agents"]["system_prompt"],
+    instructions=config["agent"]["system_prompt"],
     tools=[
         get_available_prototypes,
         get_player_position,
@@ -47,14 +46,14 @@ factorio_strategy_agent = Agent(
 async def main():
     """Main Loop"""
     logger.info("Starting Factorio Agent")
+    get_player_position #unlock the commands ability which is locked by achievements system
     try:
-        current_state = await read_game_state()
         initial_message = """
         The world is now loaded and ready to play. Pls first use the tool function to get the current game state (player position, nearby entities, and inventory),
         then analyze the current state and provide an initial strategy.
         Remember to add appropriate filtering parameters when using find_entities to avoid returning too much information.
         """
-        result = await Runner.run(factorio_strategy_agent, initial_message)
+        result = await Runner.run(factorio_agent, initial_message, max_turns=20)
         logger.info(f"agent response: {result.final_output}")
 
         step_count = 0
@@ -69,7 +68,7 @@ async def main():
             Remember to add appropriate filtering parameters when using find_entities to avoid returning too much information.
             """
 
-            result = await Runner.run(factorio_agent, message)
+            result = await Runner.run(factorio_agent, message,max_turns=40)
             logger.info(f"Step {step_count + 1} - Agent response: {result.final_output}")
             
             step_count += 1

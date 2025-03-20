@@ -173,7 +173,7 @@ class FactorioInterface:
         entities = self._parse_json_response(response)
         return entities if entities else []
     
-    def place_entity(self, name: str, x: float, y: float, direction: float = 0) -> Tuple[bool, str]:
+    def place_entity(self, name: str, x: float, y: float, direction: int = 0) -> Tuple[bool, str]:
         """
         Place an entity in the game.
         

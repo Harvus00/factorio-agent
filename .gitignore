@@ -1,7 +1,4 @@
 config.toml
 *.log
-pycache
-*.pyc
-*.pyo
-*.pyd
 .DS_Store
+**/__pycache__

@@ -61,7 +61,7 @@ class FactorioAPI:
             """
 
         @staticmethod
-        def place_entity(name: str, x: float, y: float, direction: float = 0):
+        def place_entity(name: str, x: float, y: float, direction: int = 0):
             """Place an entity in the game.
             Args:
                 name: The entity prototype name to create.

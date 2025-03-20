@@ -5,7 +5,6 @@ This module provides tool functions that can be used by the agent to interact
 with the Factorio game through the FactorioInterface.
 """
 
-import json
 from typing import List, Dict, Any, Optional, Union, Tuple
 from agents import function_tool
 from api.factorio_interface import FactorioInterface
@@ -86,7 +85,7 @@ def find_entities(name: Optional[str] = None,
     )
 
 @function_tool
-def place_entity(name: str, x: float, y: float, direction: float = 0) -> str:
+def place_entity(name: str, x: float, y: float, direction: int) -> str:
     """
     Place an entity in the game.
     
@@ -94,11 +93,13 @@ def place_entity(name: str, x: float, y: float, direction: float = 0) -> str:
         name: The entity prototype name to create
         x: The x coordinate
         y: The y coordinate
-        direction: The direction (0, 2, 4, 6 for N, E, S, W)
+        direction: The direction (0, 4, 8, 12 for N, E, S, W)
         
     Returns:
         Status message
     """
+    if direction is None:
+        direction = 0  # Default to North
     success, message = factorio.place_entity(name, x, y, direction)
     return message
 
@@ -120,7 +121,7 @@ def remove_entity(name: str, x: float, y: float) -> str:
 
 @function_tool
 def insert_item(item: str, count: int, 
-               entity: str = "player",
+               entity: str,
                x: Optional[float] = None, 
                y: Optional[float] = None) -> str:
     """
@@ -136,12 +137,15 @@ def insert_item(item: str, count: int,
     Returns:
         Status message
     """
+    # If entity is not specified, use "player"
+    if entity is None:
+        entity = "player"
     success, message = factorio.insert_item(item, count, "character_main", entity, x, y)
     return message
 
 @function_tool
 def remove_item(item: str, count: int, 
-               entity: str = "player",
+               entity: str ,
                x: Optional[float] = None, 
                y: Optional[float] = None) -> str:
     """
@@ -157,11 +161,14 @@ def remove_item(item: str, count: int,
     Returns:
         Status message
     """
+    # If entity is not specified, use "player"
+    if entity is None:
+        entity = "player"
     success, message = factorio.remove_item(item, count, entity, x, y)
     return message
 
 @function_tool
-def get_inventory(entity: str = "player",
+def get_inventory(entity: str,
                  x: Optional[float] = None, 
                  y: Optional[float] = None) -> Dict[str, int]:
     """
@@ -175,4 +182,7 @@ def get_inventory(entity: str = "player",
     Returns:
         Dictionary mapping item names to counts
     """
+    # If entity is not specified, use "player"
+    if entity is None:
+        entity = "player"
     return factorio.get_inventory("character_main", entity, x, y)
