@@ -1,0 +1,6 @@
+config.toml
+*.log
+pycache
+*.pyc
+*.pyo
+*.pyd
