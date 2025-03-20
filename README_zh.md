@@ -11,6 +11,11 @@ Factorio Agent 是一个使用 OpenAI Agent SDK 构建的智能代理，它通�
 -   执行游戏操作（移动、建筑放置、资源收集等）
 -   根据游戏变化自主调整计划
 
+<p align="center">
+  <img src="docs/game_demo.png" alt="Factorio agent play demo" width="40%">
+  <img src="docs/action_log.png" alt="Factorio agent play demo" width="40%">
+</p>
+
 ## 技术架构
 
 -   **OpenAI API**: 提供人工智能决策能力

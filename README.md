@@ -10,8 +10,11 @@ Factorio Agent is an intelligent agent built using the OpenAI Agent SDK that int
 - Execute game operations (movement, building placement, resource collection, etc.)
 - Autonomously adjust plans in response to changes in the game
 
-The playing demo is shown below:
-![Factorio agent play demo](docs/playing_demo.png)
+<p align="center">
+  <img src="docs/game_demo.png" alt="Factorio agent play demo" width="40%">
+  <img src="docs/action_log.png" alt="Factorio agent play demo" width="40%">
+</p>
+
 
 ## Technical Architecture
 
