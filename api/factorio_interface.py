@@ -175,7 +175,7 @@ class FactorioInterface:
     
     def place_entity(self, name: str, x: float, y: float, direction: int = 0) -> Tuple[bool, str]:
         """
-        Place an entity in the game.
+        Place an entity in the game surface.
         
         Args:
             name: The entity prototype name to create
@@ -186,8 +186,8 @@ class FactorioInterface:
         Returns:
             Tuple[bool, str]: (success, message)
         """
-        if not is_valid_entity(name):
-            return False, f"Invalid entity name: {name}"
+        # if not is_valid_entity(name):
+        #     return False, f"Invalid entity name: {name}"
             
         command = self.api.Entity.place_entity(name, x, y, direction)
         response = self._send_command(command)
@@ -195,7 +195,7 @@ class FactorioInterface:
     
     def remove_entity(self, name: str, x: float, y: float) -> Tuple[bool, str]:
         """
-        Remove an entity from the game.
+        Remove an entity from the game surface.
         
         Args:
             name: The entity prototype name to remove
@@ -229,8 +229,8 @@ class FactorioInterface:
         Returns:
             Tuple[bool, str]: (success, message)
         """
-        if not is_valid_item(item):
-            return False, f"Invalid item name: {item}"
+        # if not is_valid_item(item):
+        #     return False, f"Invalid item name: {item}"
             
         command = self.api.Inventory.insert_item(item, count, inventory_type, entity, x, y)
         response = self._send_command(command)
@@ -280,16 +280,43 @@ class FactorioInterface:
         response = self._send_command(command)
         inventory = self._parse_json_response(response)
         return inventory if inventory else {}
-    
-    # Game information methods
-    def get_available_prototypes(self) -> Dict[str, List[str]]:
-        """
-        Get lists of available prototype names in the game.
+
+    def get_available_entities(self):
+        """获取所有可用的实体"""
+        from api.prototype import get_entity_names, get_entity_by_type, ENTITY_TYPES
         
-        Returns:
-            Dict[str, List[str]]: Dictionary with keys 'entities', 'items', etc.
-        """
-        return {
-            'entities': get_entity_names(),
-            'items': get_item_names()
+        result = {
+            "all": get_entity_names(),
+            "by_type": {}
         }
+        
+        for type_category, types in ENTITY_TYPES.items():
+            result["by_type"][type_category] = {}
+            for entity_type in types:
+                result["by_type"][type_category][entity_type] = get_entity_by_type(entity_type)
+        
+        return result
+
+    def get_available_items(self):
+        """获取所有可用的物品"""
+        from api.prototype import get_item_names, get_item_info
+        
+        items = get_item_names()
+        result = {}
+        
+        for item in items:
+            result[item] = get_item_info(item)
+        
+        return result
+
+    def get_available_recipes(self):
+        """获取所有可用的配方"""
+        from api.prototype import get_recipe_names, RECIPES
+        
+        recipes = get_recipe_names()
+        result = {}
+        
+        for recipe in recipes:
+            result[recipe] = RECIPES[recipe]
+        
+        return result

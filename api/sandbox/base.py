@@ -72,7 +72,7 @@ class FactorioAPI:
             inventory = FactorioAPI.Inventory
             # surface.can_place_entity checks according to the entity's collision box, while player.can_place_entity checks according to the player's reach distance and some other factors.
             return f"""/c local player = game.get_player(1)
-            if  game.get_player(1).get_main_inventory().get_item_count('{name}') > 0 and game.surfaces[1].can_place_entity{{name='{name}', position={{{x},{y}}}}} and player.can_place_entity{{name='{name}', position={{{x},{y}}}}} then
+            if  game.surfaces[1].can_place_entity{{name='{name}', position={{{x},{y}}}}} and player.can_place_entity{{name='{name}', position={{{x},{y}}}}} then
                 game.surfaces[1].create_entity{{name='{name}', position={{x={x}, y={y}}},direction= {direction}, force=game.forces.player}}    
                 rcon.print('Success: Entity {name} placed')
                 {inventory.remove_item(name,1)[3:]}

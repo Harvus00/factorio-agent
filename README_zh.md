@@ -1,5 +1,6 @@
 # Factorio Agent
 [ [English](README.md) | [中文](README_zh.md) ]
+
 一个基于人工智能的 Factorio 游戏代理，能够自主分析游戏状态并执行操作。
 
 ## 项目概述
@@ -28,7 +29,7 @@ Factorio Agent 是一个使用 OpenAI Agent SDK 构建的智能代理，它通�
 ### 前提条件
 
 -   Python 3.11+
--   [Factorio 游戏](https://www.factorio.com/)
+-   [Factorio 2.32](https://www.factorio.com/)
 -   OpenAI API 密钥
 
 ### 安装步骤

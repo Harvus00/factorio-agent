@@ -1,5 +1,6 @@
 # Factorio Agent 
 [ [English](README.md) | [中文](README_zh.md) ]
+
 An AI-based Factorio game agent capable of autonomously analyzing game states and executing operations.
 ## Project Overview
 
@@ -28,7 +29,7 @@ Factorio Agent is an intelligent agent built using the OpenAI Agent SDK that int
 ### Prerequisites
 
 - Python 3.11+
-- [Factorio game](https://www.factorio.com/)  
+- [Factorio 2.32](https://www.factorio.com/)  
 - OpenAI API key
 
 ### Installation Steps
