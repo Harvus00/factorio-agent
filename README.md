@@ -12,10 +12,14 @@ Factorio Agent is an intelligent agent built using the OpenAI Agent SDK that int
 - Autonomously adjust plans in response to changes in the game
 
 <p align="center">
-  <img src="docs/game_demo.png" alt="Factorio agent play demo" width="40%">
-  <img src="docs/action_log.png" alt="Factorio agent play demo" width="40%">
+  <img src="docs/game_demo.png" alt="Factorio agent play demo" width="46%">
+  <img src="docs/action_log.png" alt="Factorio agent play demo" width="46%">
 </p>
 
+- MQTT workflow in Node-Red also integrated, as you can use agent node in Node-Red rather than OpenAi agent SDK. But it needs a [Factorio MQTT Notify mod](https://github.com/lvshrd/Factorio-MQTT-Mod) installed and `publisher.py` running. If you have installed Node-Red, you can simply import the workflow via a json file [here](docs/Node-Red%20flows.json).
+<p align="center">
+  <img src="docs/Node-Red_workflow.png" alt="Factorio agent using Node-Red" width="90%">
+</p>
 
 ## Technical Architecture
 
@@ -29,7 +33,7 @@ Factorio Agent is an intelligent agent built using the OpenAI Agent SDK that int
 ### Prerequisites
 
 - Python 3.11+
-- [Factorio 2.32](https://www.factorio.com/)  
+- [Factorio](https://www.factorio.com/) above 2.0 version (Here I use 2.0.32)
 - OpenAI API key
 
 ### Installation Steps

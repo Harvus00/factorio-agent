@@ -9,6 +9,15 @@ host = "127.0.0.1"
 port = 8088
 password = ""
 
+[mqtt]
+broker = "your broker ip"
+port = 1883
+client_id = "factorio_subscriber"
+username = ""
+password = ""
+command_topic = "Factorio/Commands"
+response_topic = "Factorio/Responses"
+
 [agent]
 # System prompt for the Factorio agent
 system_prompt = """
