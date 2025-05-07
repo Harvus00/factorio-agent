@@ -8,19 +8,21 @@ with the Factorio game through the FactorioInterface.
 from typing import List, Dict, Any, Optional, Union, Tuple
 from agents import function_tool
 from api.factorio_interface import FactorioInterface
+import toml
 
 # Create a global interface instance
-factorio = FactorioInterface()
+config = toml.load("config.toml")
+factorio = FactorioInterface(config["rcon"]["host"], config["rcon"]["port"], config["rcon"]["password"])
 
-@function_tool
-def get_available_prototypes() -> Dict[str, List[str]]:
-    """
-    Get lists of available prototype names in the game.
+# @function_tool
+# def get_available_prototypes() -> Dict[str, List[str]]:
+#     """
+#     Get lists of available prototype names in the game.
     
-    Returns:
-        Dict with keys 'entities' and 'items', each containing a list of valid names
-    """
-    return factorio.get_available_prototypes()
+#     Returns:
+#         Dict with keys 'entities' and 'items', each containing a list of valid names
+#     """
+#     return factorio.get_available_prototypes()
 
 @function_tool
 def get_player_position() -> Dict[str, float]:

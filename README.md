@@ -1,5 +1,5 @@
 # Factorio Agent 
-[ [English](README.md) | [中文](README_zh.md) ]
+[ [English](README.md) | [中文](docs/README_zh.md) ]
 
 An AI-based Factorio game agent capable of autonomously analyzing game states and executing operations.
 ## Project Overview
@@ -80,7 +80,7 @@ step_delay = 5
 
 1. Create a new single freeplay game and ensure the Factorio server is running with RCON enabled (When needed, start a Multiplayer game and configure  the RCON port and password in `./config/config.ini` in your game [directory](https://wiki.factorio.com/Application_directory) )
 
-2. Execute any command first to unlock the achievement limit. For example: run test scripts to ensure the RCON connection is working and the Factorio API is accessible by the agent.
+2. **Unnecessary:** Execute any command first to unlock the achievement limit. For example: run test scripts to ensure the RCON connection is working and the Factorio API is accessible by the agent.
 ```bash
 python test/RCON_test.py
 python test/interface_test.py
@@ -182,4 +182,4 @@ The location features a substantial coal reserve, which can be utilized to fuel 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](docs/LICENSE) file for details.

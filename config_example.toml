@@ -10,7 +10,7 @@ port = 8088
 password = ""
 
 [mqtt]
-broker = "your broker ip"
+broker = "supos-ce-instance1.supos.app"
 port = 1883
 client_id = "factorio_subscriber"
 username = ""

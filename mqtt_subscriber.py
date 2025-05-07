@@ -25,7 +25,7 @@ config = toml.load("config.toml")
 mqtt_config = config.get("mqtt", {})
 
 # Create FactorioInterface instance
-factorio = FactorioInterface()
+factorio = FactorioInterface(config["rcon"]["host"], config["rcon"]["port"], config["rcon"]["password"])
 
 def on_connect(client, userdata, flags, rc):
     """MQTT connect callback"""
@@ -145,6 +145,7 @@ def main():
     # Connect to the MQTT broker
     try:
         client.connect(broker, port)
+        logger.info(f"Connected to MQTT broker: {broker}:{port}")
     except Exception as e:
         logger.error(f"Failed to connect to MQTT broker: {e}")
         return
