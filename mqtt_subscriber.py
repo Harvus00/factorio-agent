@@ -16,7 +16,7 @@ from typing import Optional
 # Logging configuration
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(levelname)s - %(message)s',
     filename='factorio_mqtt.log'
 )
 logger = logging.getLogger('factorio_mqtt')
@@ -56,18 +56,33 @@ class FactorioMQTTSubscriber:
     def on_connect(self, client, userdata, flags, rc):
         """MQTT connect callback"""
         if rc == 0:
+            # Subscribe to both topics
             client.subscribe(self.mqtt_config.get("command_topic", "Factorio/Commands"))
+            client.subscribe(self.mqtt_config.get("plan_topic", "Factorio/Plans"))
+            logger.info("Subscribed to topics: Factorio/Commands and Factorio/Plans")
         else:
             logger.error(f"Failed to connect to MQTT Broker, return code {rc}")
 
     def on_message(self, client, userdata, msg):
         """MQTT message callback"""
         try:
+            # Handle plan topic messages
+            if msg.topic == self.mqtt_config.get("plan_topic", "Factorio/Plans"):
+                plan_bytes = msg.payload
+                try:
+                    plan_str = plan_bytes.decode('utf-8')
+                except UnicodeDecodeError:
+                    plan_str = str(plan_bytes)  # Fallback to raw bytes representation if UTF-8 fails
+                log = f"Agent's plan: {plan_str}"
+                logger.info(log)
+                print(log)
+                return
+            
             payload = json.loads(msg.payload.decode())
-            log = f"Received action from {msg.topic}: {payload}"
+            log = f"Received from {msg.topic}: {payload}"
             logger.info(log)
             print(log)
-            
+            # Handle command topic messages
             command = payload.get("command")
             params = payload.get("params", {})
             
@@ -149,7 +164,7 @@ class FactorioMQTTSubscriber:
             "result": result
         }
         client.publish(response_topic, json.dumps(payload))
-        log = f"Published action result: {command}: {result}"
+        log = f"Published feedback: {command}: {result}\n"
         logger.info(log)
         print(log)
 

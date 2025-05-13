@@ -17,6 +17,7 @@ username = ""
 password = ""
 command_topic = "Factorio/Commands"
 response_topic = "Factorio/Responses"
+plan_topic = "Factorio/Plans"
 
 [agent]
 # System prompt for the Factorio agent

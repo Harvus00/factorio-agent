@@ -82,7 +82,7 @@ class FactorioInterface:
             Tuple[bool, str]: (success, message)
         """
         if not response:
-            return False, "No response from server"
+            return False, "Something went wrong"
             
         if response.startswith("Success:"):
             return True, response[9:].strip()
@@ -163,6 +163,8 @@ class FactorioInterface:
         Returns:
             List[Dict[str, Any]]: List of entity data dictionaries
         """
+        if not is_valid_entity(name):
+            return f"Failed: Invalid entity name: {name}"
         command = self.api.Entity.search_entities(
             name=name, type=type, 
             position_x=position_x, position_y=position_y, radius=radius,
@@ -341,4 +343,4 @@ class FactorioInterface:
         command = self.api.Surface.find_tiles_filtered(bottom_left_x, bottom_left_y, top_right_x, top_right_y, position_x, position_y, radius, name, limit)
         response = self._send_command(command)
         tiles = self._parse_json_response(response)
-        return tiles
+        return tiles if tiles else []

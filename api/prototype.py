@@ -11,9 +11,34 @@ ENTITY_TYPES = {
     "logistics": ["transport-belt", "splitter", "underground-belt", "inserter", "chest"],
     "energy": ["boiler", "steam-engine", "offshore-pump","pump", "pipe", "pipe-to-ground" ,"solar-panel", "accumulator", "electric-pole"],
     "defense": ["wall", "turret"],
+    "resource": ["coal", "iron-ore", "copper-ore", "stone", "wood"],
+    "fish": ["fish"],
 }
 
 ENTITIES = {
+    "fish": {
+        "type": "fish",
+    },
+    "coal": {
+        "type": "resource",
+        "resource_categories": ["basic-solid"],
+    },
+    "iron-ore": {
+        "type": "resource",
+        "resource_categories": ["basic-solid"],
+    },
+    "copper-ore": {
+        "type": "resource",
+        "resource_categories": ["basic-solid"],
+    },
+    "stone": {
+        "type": "resource",
+        "resource_categories": ["basic-solid"],
+    },
+    "wood": {
+        "type": "resource",
+        "resource_categories": ["basic-solid"],
+    },
     "stone-furnace": {
         "type": "furnace",
         "crafting_categories": ["smelting"],

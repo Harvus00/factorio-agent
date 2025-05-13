@@ -62,7 +62,8 @@ class FactorioAPI:
             filter_string = ", ".join(filter_params)
 
             return f"""/c local entities = game.surfaces[1].find_entities_filtered{{ {filter_string} }}
-            if entities then
+            local entity_count = #entities
+            if entities and entity_count > 0 then
                 local entity_data = {{}}
                 for _, entity in ipairs(entities) do
                     table.insert(entity_data, {{name = entity.name, position = entity.position, direction = entity.direction, status = entity.status, type = entity.type}})
@@ -95,8 +96,7 @@ class FactorioAPI:
             else
                 if not surface_can_place then
                     rcon.print('Failed: Cannot place {name} due to collision with other entities or terrain')
-                end
-                if not player_can_place then
+                elseif not player_can_place then
                     rcon.print('Failed: Cannot place {name} - position is out of player reach distance')
                 end
             end
@@ -190,7 +190,7 @@ class FactorioAPI:
                 return remove_item_from_player
             else:
                 remove_item_from_entity=f"""/c local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
-                if entity and entity.then
+                if entity then
                     entity.get_inventory(1).remove{{name='{item}', count={count}}}
                     rcon.print('Item {item} removed')
                 else
