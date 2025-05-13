@@ -15,8 +15,21 @@ class FactorioAPI:
             return f"/c game.get_player(1).teleport({{y = {y}, x = {x}}})"
 
     class Entity:
+        class EntityStatus:
+            WORKING = 1
+            NO_POWER = 2
+            NO_FUEL = 4
+            LOW_POWER = 8
+            NO_MINABLE_RESOURCES = 16
+            DISABLED_BY_CONTROL_BEHAVIOR = 32
+            DISABLED_BY_SCRIPT = 64
+            ITEM_INGREDIENT_SHORTAGE = 128
+            FLUID_INGREDIENT_SHORTAGE = 256
+            FULL_OUTPUT = 512
+            NO_RESEARCH_IN_PROGRESS = 1024
+    
         @staticmethod
-        def get_entities(bottom_left_x: float = None, bottom_left_y: float = None, top_right_x: float = None, top_right_y: float = None, position_x: float = None, position_y: float = None, radius: float = None, name: list = None, type: str = None, limit: int = None):
+        def search_entities(bottom_left_x: float = None, bottom_left_y: float = None, top_right_x: float = None, top_right_y: float = None, position_x: float = None, position_y: float = None, radius: float = None, name: list = None, type: str = None, limit: int = None):
             """Find entities in the game based on specified filters.
 
             Args:
@@ -52,14 +65,14 @@ class FactorioAPI:
             if entities then
                 local entity_data = {{}}
                 for _, entity in ipairs(entities) do
-                    table.insert(entity_data, {{name = entity.name, position = entity.position, type = entity.type}})
+                    table.insert(entity_data, {{name = entity.name, position = entity.position, direction = entity.direction, status = entity.status, type = entity.type}})
                 end
                 rcon.print(helpers.table_to_json(entity_data))
             else
                 rcon.print('Failed: No entities found with the specified filters.')
             end
             """
-
+        
         @staticmethod
         def place_entity(name: str, x: float, y: float, direction: int = 0):
             """Place an entity in the game.
@@ -72,12 +85,20 @@ class FactorioAPI:
             inventory = FactorioAPI.Inventory
             # surface.can_place_entity checks according to the entity's collision box, while player.can_place_entity checks according to the player's reach distance and some other factors.
             return f"""/c local player = game.get_player(1)
-            if  game.surfaces[1].can_place_entity{{name='{name}', position={{{x},{y}}}}} and player.can_place_entity{{name='{name}', position={{{x},{y}}}}} then
-                game.surfaces[1].create_entity{{name='{name}', position={{x={x}, y={y}}},direction= {direction}, force=game.forces.player}}    
+            local surface_can_place = game.surfaces[1].can_place_entity{{name='{name}', position={{{x},{y}}}}}
+            local player_can_place = player.can_place_entity{{name='{name}', position={{{x},{y}}}}}
+            local filter = {{filter="name", name='{name}'}}
+
+            if surface_can_place and player_can_place then
+                game.surfaces[1].create_entity{{name='{name}', position={{x={x}, y={y}}}, direction={direction}, force=game.forces.player}}
                 rcon.print('Success: Entity {name} placed')
-                {inventory.remove_item(name,1)[3:]}
             else
-                rcon.print('Failed: Cannot place entity {name}')
+                if not surface_can_place then
+                    rcon.print('Failed: Cannot place {name} due to collision with other entities or terrain')
+                end
+                if not player_can_place then
+                    rcon.print('Failed: Cannot place {name} - position is out of player reach distance')
+                end
             end
             """
         
@@ -214,3 +235,45 @@ class FactorioAPI:
                 end
                 """
                 return get_inventory_from_entity
+            
+    class Surface:
+        @staticmethod
+        def find_tiles_filtered(bottom_left_x: float, bottom_left_y: float, top_right_x: float, top_right_y: float, position_x: float, position_y: float, radius: float, name: list = None, limit: int = None):
+            """Find tiles in the game based on specified filters.
+
+            Args:
+                bottom_left_x: The bottom-left x coordinate of the search area (optional).
+                bottom_left_y: The bottom-left y coordinate of the search area (optional).
+                top_right_x: The top-right x coordinate of the search area (optional).
+                top_right_y: The top-right y coordinate of the search area (optional).
+                position_x: The x coordinate of the center of the search circle (optional).
+                position_y: The y coordinate of the center of the search circle (optional).
+                radius: The radius of the search circle (optional).
+                name: A list of tile names to filter by (optional).
+                limit: The maximum number of tiles to return (optional).
+            """
+            filter_params = []
+            if name:
+                if isinstance(name, str):
+                    filter_params.append(f"name = '{name}'")
+                elif isinstance(name, list):
+                    quoted_names = [f"'{n}'" for n in name]
+                    filter_params.append(f"name = {{ {', '.join(quoted_names)} }}")
+            if bottom_left_x is not None and bottom_left_y is not None and top_right_x is not None and top_right_y is not None:
+                filter_params.append(f"area={{ {{ {bottom_left_x}, {bottom_left_y} }}, {{ {top_right_x}, {top_right_y} }} }}")
+            if position_x is not None and position_y is not None and radius is not None:
+                filter_params.append(f"position={{ {position_x}, {position_y} }}, radius={radius}")
+            if limit:
+                filter_params.append(f"limit = {limit}")
+            filter_string = ", ".join(filter_params)
+            return f"""/c local tiles = game.surfaces[1].find_tiles_filtered{{ {filter_string} }}
+            if tiles then
+                local tile_data = {{}}
+                for _, tile in ipairs(tiles) do
+                    table.insert(tile_data, {{name = tile.name, position = tile.position}})
+                end
+                rcon.print(helpers.table_to_json(tile_data))
+            else
+                rcon.print('Failed: No tiles found with the specified filters.')
+            end
+            """

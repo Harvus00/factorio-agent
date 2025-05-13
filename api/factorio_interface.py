@@ -34,6 +34,7 @@ class FactorioInterface:
         """
         self.rcon_client = rcon.RCONClient(host, port, password)
         self.api = FactorioAPI()
+        self._send_command("game.print('Hello, World!')")
     
     def _send_command(self, command: str) -> str:
         """
@@ -133,7 +134,7 @@ class FactorioInterface:
         return bool(response) or response == ""
     
     # Entity-related methods
-    def get_entities(self, 
+    def search_entities(self, 
                     name: Optional[Union[str, List[str]]] = None,
                     type: Optional[str] = None,
                     position_x: Optional[float] = None,
@@ -145,7 +146,7 @@ class FactorioInterface:
                     top_right_y: Optional[float] = None,
                     limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """
-        Find entities in the game based on specified filters.
+        Search entities in the current game based on specified filters.
         
         Args:
             name: Entity prototype name(s) to filter by
@@ -162,7 +163,7 @@ class FactorioInterface:
         Returns:
             List[Dict[str, Any]]: List of entity data dictionaries
         """
-        command = self.api.Entity.get_entities(
+        command = self.api.Entity.search_entities(
             name=name, type=type, 
             position_x=position_x, position_y=position_y, radius=radius,
             bottom_left_x=bottom_left_x, bottom_left_y=bottom_left_y,
@@ -186,9 +187,8 @@ class FactorioInterface:
         Returns:
             Tuple[bool, str]: (success, message)
         """
-        # if not is_valid_entity(name):
-        #     return False, f"Invalid entity name: {name}"
-            
+        if not is_valid_entity(name):
+            return False, f"Invalid entity name: {name}"
         command = self.api.Entity.place_entity(name, x, y, direction)
         response = self._send_command(command)
         return self._parse_success_response(response)
@@ -281,42 +281,64 @@ class FactorioInterface:
         inventory = self._parse_json_response(response)
         return inventory if inventory else {}
 
-    def get_available_entities(self):
-        """获取所有可用的实体"""
-        from api.prototype import get_entity_names, get_entity_by_type, ENTITY_TYPES
+    def list_supported_entities(self, mode: str = "all", search_type: str = None, keyword: str = None):
+        """
+        Get supported entities based on different search modes.
         
-        result = {
-            "all": get_entity_names(),
-            "by_type": {}
-        }
+        Args:
+            mode: Search mode - "all" for all entities names, "type" for entities of specific type with info,
+                 "search" for keyword search with info
+            search_type: When mode="type", specify the entity type to filter
+            keyword: When mode="search", specify the keyword to search entity names
+            
+        Returns:
+            List of entity names or Dict containing matched entity names and their info
+        """
+        from api.prototype import get_entity_names, get_entity_by_type, get_entity_info
         
-        for type_category, types in ENTITY_TYPES.items():
-            result["by_type"][type_category] = {}
-            for entity_type in types:
-                result["by_type"][type_category][entity_type] = get_entity_by_type(entity_type)
-        
+        # Get all entities by default
+        if mode == "all":
+            result = get_entity_names()
+                    
+        # Filter by specific type
+        elif mode == "type" and search_type:
+            entity_names = get_entity_by_type(search_type)
+            result = {name: get_entity_info(name) for name in entity_names}
+            
+        # Search by keyword
+        elif mode == "search" and keyword:
+            all_entities = get_entity_names()
+            result = {}
+            for name in all_entities:
+                # Use fuzzy matching algorithm - fuzzywuzzy
+                from fuzzywuzzy import fuzz
+                similarity = fuzz.partial_ratio(keyword.lower(), name.lower())
+                if similarity > 70:
+                    result[name] = get_entity_info(name)
+        else:
+            result = {"error": "Invalid search parameters"}
+            
         return result
 
-    def get_available_items(self):
-        """获取所有可用的物品"""
+    def list_supported_items(self):
+        """Get all supported items"""
         from api.prototype import get_item_names, get_item_info
         
         items = get_item_names()
-        result = {}
-        
-        for item in items:
-            result[item] = get_item_info(item)
-        
-        return result
+        return items
 
-    def get_available_recipes(self):
-        """获取所有可用的配方"""
-        from api.prototype import get_recipe_names, RECIPES
-        
-        recipes = get_recipe_names()
-        result = {}
-        
-        for recipe in recipes:
-            result[recipe] = RECIPES[recipe]
-        
-        return result
+    def find_surface_tile(self, 
+                    name: Optional[Union[str, List[str]]] = None,
+                    position_x: Optional[float] = None,
+                    position_y: Optional[float] = None,
+                    radius: Optional[float] = None,
+                    bottom_left_x: Optional[float] = None,
+                    bottom_left_y: Optional[float] = None,
+                    top_right_x: Optional[float] = None,
+                    top_right_y: Optional[float] = None,
+                    limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Find the tile at the specified coordinates"""
+        command = self.api.Surface.find_tiles_filtered(bottom_left_x, bottom_left_y, top_right_x, top_right_y, position_x, position_y, radius, name, limit)
+        response = self._send_command(command)
+        tiles = self._parse_json_response(response)
+        return tiles

@@ -4,48 +4,57 @@ Factorio Prototype Definitions
 This module provides comprehensive information about Factorio entities,
 items, recipes and their relationships.
 """
+#TODO: It should be replaced by another agent to search the information from the internet or the local database.
 
-# 实体类型定义
 ENTITY_TYPES = {
     "production": ["assembling-machine", "furnace", "mining-drill"],
     "logistics": ["transport-belt", "splitter", "underground-belt", "inserter", "chest"],
-    "energy": ["boiler", "steam-engine", "solar-panel", "accumulator", "electric-pole"],
-    "defense": ["wall", "turret", "gate"],
-    "other": ["lab", "pipe", "pipe-to-ground", "offshore-pump"]
+    "energy": ["boiler", "steam-engine", "offshore-pump","pump", "pipe", "pipe-to-ground" ,"solar-panel", "accumulator", "electric-pole"],
+    "defense": ["wall", "turret"],
 }
 
-# 实体详细信息
 ENTITIES = {
     "stone-furnace": {
         "type": "furnace",
         "crafting_categories": ["smelting"],
         "energy_source": "burner",
-        "energy_usage": "90kW",
-        "crafting_speed": 1.0
+    },
+    "electric-furnace": {
+        "type": "furnace",
+        "crafting_categories": ["smelting"],
+        "energy_source": "electric",
     },
     "burner-mining-drill": {
         "type": "mining-drill",
         "resource_categories": ["basic-solid"],
         "energy_source": "burner",
-        "energy_usage": "150kW",
-        "mining_speed": 0.25
+    },
+    "electric-mining-drill": {
+        "type": "mining-drill",
+        "resource_categories": ["basic-solid"],
+        "energy_source": "electric",
     },
     "assembling-machine-1": {
         "type": "assembling-machine",
         "crafting_categories": ["crafting"],
         "energy_source": "electric",
-        "energy_usage": "75kW",
-        "crafting_speed": 0.5
     },
     "burner-inserter": {
         "type": "inserter",
         "energy_source": "burner",
-        "energy_usage": "188kW",
-        "rotation_speed": 0.03125
+    },
+    "long-handed-inserter": {
+        "type": "inserter",
+        "energy_source": "electric",
+    },
+    "fast-inserter": {
+        "type": "inserter",
+        "energy_source": "electric",
     },
     "transport-belt": {
         "type": "transport-belt",
-        "speed": 0.03125
+        "dimensions": 1*1,
+        "speed": "15 items/s"
     },
     "wooden-chest": {
         "type": "chest",
@@ -61,46 +70,77 @@ ENTITIES = {
     },
     "small-electric-pole": {
         "type": "electric-pole",
-        "supply_area_distance": 2.5,
-        "wire_reach_distance": 5.0
+        "supply_area_size": 5.0*5.0,
+        "wire_reach_distance": 7.5
     },
     "medium-electric-pole": {
         "type": "electric-pole",
-        "supply_area_distance": 3.5,
-        "wire_reach_distance": 7.5
+        "supply_area_size": 7.0*7.0,
+        "wire_reach_distance": 9.0
     },
     "big-electric-pole": {
         "type": "electric-pole",
-        "supply_area_distance": 2.0,
-        "wire_reach_distance": 30.0
+        "supply_area_size": 16.0*16.0,
+        "wire_reach_distance": 32.0
+    },
+    "substation": {
+        "type": "electric-pole",
+        "supply_area_size": 18.0*18.0,
+        "wire_reach_distance": 18.0
     },
     "pipe": {
         "type": "pipe",
-        "fluid_capacity": 100
+        "fluid_storage_volume": 100,
+        "dimensions": 1*1
     },
     "pipe-to-ground": {
         "type": "pipe-to-ground",
-        "fluid_capacity": 100,
-        "max_distance": 10
+        "fluid_storage_volume": 100,
+        "max_distance": 10,
+        "dimensions": 1*1
+    },
+    "pump": {
+        "type": "pump",
+        "fluid_storage_volume": 400,
+        "dimensions": 1*2
     },
     "boiler": {
         "type": "boiler",
         "energy_source": "burner",
-        "energy_consumption": "1.8MW"
+        "fluid_storage_volume": {"input": 200, "output": 200},
+        "dimensions": 2*3,
+        "energy_consumption": "1.8MW",
+        "fluid_consumption": "6/s",
+        "pollution": "30/m"
     },
     "steam-engine": {
         "type": "generator",
-        "fluid_usage": 30,
-        "max_power": "900kW"
+        "fluid_storage_volume": 200,
+        "dimensions": 3*5,
+        "power_output": "900kW",
+        "fluid_consumption": "30/s",
+        "pollution": "N/A"
+    },
+    "solar-panel": {
+        "type": "solar-panel",
+        "dimensions": 3*3,
+        "power_output": {"full daylight": "60kW", "average": "42kW"},
+        "description": """A single (normal quality) solar panel outputs an average of 42 kW over a day on Nauvis and requires 0.84672 accumulators to sustain a constant power output through the night.
+It takes approximately 23.8 solar panels to operate 1 MW of factory and charge 20.2 accumulators to sustain that 1 MW through the night.
+The optimal ratio for normal quality solar panels to charge enough normal quality accumulators on Nauvis is 2646 accumulators for 3125 solar panels (supplying 42 kW per solar panel).
+"""
+    },
+    "accumulator": {
+        "type": "accumulator",
+        "dimensions": 2*2,
+        "energy_capacity": "5.0MJ",
+        "energy_source": "electric",
+        "power_input": "300kW",
+        "power_output": "300kW"
     },
     "offshore-pump": {
         "type": "offshore-pump",
         "pumping_speed": 1200
-    },
-    "lab": {
-        "type": "lab",
-        "energy_usage": "60kW",
-        "researching_speed": 1
     }
 }
 
@@ -228,40 +268,40 @@ RECIPES = {
 }
 
 def get_entity_names():
-    """获取所有有效的实体名称列表"""
+    """Get the list of valid entity names"""
     return list(ENTITIES.keys())
 
 def get_entity_by_type(entity_type):
-    """获取指定类型的所有实体"""
+    """Get the list of entities of the specified type"""
     return [name for name, data in ENTITIES.items() if data["type"] == entity_type]
 
 def get_item_names():
-    """获取所有有效的物品名称列表"""
+    """Get the list of valid item names"""
     return list(ITEMS.keys())
 
 def get_recipe_names():
-    """获取所有有效的配方名称列表"""
+    """Get the list of valid recipe names"""
     return list(RECIPES.keys())
 
 def get_recipe_for_item(item_name):
-    """获取制作指定物品的配方"""
+    """Get the recipe for the specified item"""
     for recipe_name, recipe in RECIPES.items():
         if recipe["result"] == item_name:
             return recipe
     return None
 
 def get_entity_info(entity_name):
-    """获取实体的详细信息"""
+    """Get the detailed information of the entity"""
     return ENTITIES.get(entity_name)
 
 def get_item_info(item_name):
-    """获取物品的详细信息"""
+    """Get the detailed information of the item"""
     return ITEMS.get(item_name)
 
 def is_valid_entity(name):
-    """检查实体名称是否有效"""
+    """Check if the entity name is valid"""
     return name in ENTITIES
 
 def is_valid_item(name):
-    """检查物品名称是否有效"""
+    """Check if the item name is valid"""
     return name in ITEMS

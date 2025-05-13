@@ -16,7 +16,7 @@ class FactorioAPI:
 
     class Entity:
         @staticmethod
-        def get_entities(bottom_left_x: float = None, bottom_left_y: float = None, top_right_x: float = None, top_right_y: float = None, position_x: float = None, position_y: float = None, radius: float = None, name: list = None, type: str = None, limit: int = None):
+        def search_entities(bottom_left_x: float = None, bottom_left_y: float = None, top_right_x: float = None, top_right_y: float = None, position_x: float = None, position_y: float = None, radius: float = None, name: list = None, type: str = None, limit: int = None):
             """Find entities in the game based on specified filters.
 
             Args:

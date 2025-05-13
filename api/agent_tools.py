@@ -53,13 +53,14 @@ def move_player(x: float, y: float) -> str:
     return "Player moved successfully" if success else "Failed to move player"
 
 @function_tool
-def find_entities(name: Optional[str] = None, 
+def search_entities(name: Optional[str] = None, 
                  type: Optional[str] = None,
                  radius: Optional[float] = None,
                  position_x: Optional[float] = None,
-                 position_y: Optional[float] = None) -> List[Dict[str, Any]]:
+                 position_y: Optional[float] = None,
+                 limit: Optional[int] = None) -> List[Dict[str, Any]]:
     """
-    Find entities in the game based on specified filters.
+    Search entities in the current game based on specified filters.
     
     Args:
         name: Entity prototype name to filter by
@@ -67,7 +68,7 @@ def find_entities(name: Optional[str] = None,
         radius: Radius of the search circle
         position_x: X coordinate of the center of the search circle
         position_y: Y coordinate of the center of the search circle
-        
+        limit: Maximum number of entities to return
     Returns:
         List of entity data dictionaries
     """
@@ -78,12 +79,13 @@ def find_entities(name: Optional[str] = None,
             position_x = position_x or player_pos.get('x', 0)
             position_y = position_y or player_pos.get('y', 0)
     
-    return factorio.get_entities(
+    return factorio.search_entities(
         name=name, 
         type=type,
         position_x=position_x,
         position_y=position_y,
-        radius=radius
+        radius=radius,
+        limit=limit
     )
 
 @function_tool
@@ -188,3 +190,50 @@ def get_inventory(entity: str,
     if entity is None:
         entity = "player"
     return factorio.get_inventory("character_main", entity, x, y)
+
+@function_tool
+def list_supported_entities(mode: str = "all", search_type: str = None, keyword: str = None) -> List[str]:
+    """
+    Get a list of all supported entities, may not be all entities in the game.
+    
+    Args:
+        mode: Search mode - "all" for all entities, "type" for entities of specific type,
+             "search" for keyword search
+        search_type: When mode="type", specify the entity type to filter
+        keyword: When mode="search", specify the keyword to search entity names
+        
+    Returns:
+        List of supported entity names
+    """
+    return factorio.list_supported_entities(mode, search_type, keyword)
+
+@function_tool
+def list_supported_items() -> Dict[str, List[str]]:
+    """
+    Get a list of all supported items, may not be all items in the game.
+
+    Returns:
+        Dictionary with keys 'items', each containing a list of valid names
+    """
+    return factorio.list_supported_items()
+
+@function_tool
+def find_surface_tile(name: Optional[str] = None,
+                     position_x: Optional[float] = None,
+                     position_y: Optional[float] = None,
+                     radius: Optional[float] = None,
+                     limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    """ 
+    Find surface tiles in the current game based on specified filters.
+    
+    Args:
+        name: Tile name to filter by
+        position_x: X coordinate of the center of the search circle
+        position_y: Y coordinate of the center of the search circle
+        radius: Radius of the search circle
+        limit: Maximum number of tiles to return
+        
+    Returns:
+        List of tile data dictionaries
+    """
+    return factorio.find_surface_tile(name, position_x, position_y, radius, limit=limit)
