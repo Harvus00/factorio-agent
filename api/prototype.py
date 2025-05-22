@@ -169,7 +169,6 @@ The optimal ratio for normal quality solar panels to charge enough normal qualit
     }
 }
 
-# 物品详细信息
 ITEMS = {
     "iron-plate": {
         "stack_size": 100,
@@ -225,7 +224,6 @@ ITEMS = {
     }
 }
 
-# 配方信息
 RECIPES = {
     "iron-gear-wheel": {
         "ingredients": [{"iron-plate": 2}],

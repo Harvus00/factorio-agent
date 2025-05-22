@@ -163,8 +163,13 @@ class FactorioInterface:
         Returns:
             List[Dict[str, Any]]: List of entity data dictionaries
         """
-        if not is_valid_entity(name):
-            return f"Failed: Invalid entity name: {name}"
+        if name:
+            if isinstance(name, list):
+                for entity_name in name:
+                    if not is_valid_entity(entity_name):
+                        return f"Failed: Invalid entity name: {entity_name}"
+            elif not is_valid_entity(name):
+                return f"Failed: Invalid entity name: {name}"
         command = self.api.Entity.search_entities(
             name=name, type=type, 
             position_x=position_x, position_y=position_y, radius=radius,
@@ -189,8 +194,9 @@ class FactorioInterface:
         Returns:
             Tuple[bool, str]: (success, message)
         """
-        if not is_valid_entity(name):
-            return False, f"Invalid entity name: {name}"
+        if name:
+            if not is_valid_entity(name):
+                return f"Failed: Invalid entity name: {name}"
         command = self.api.Entity.place_entity(name, x, y, direction)
         response = self._send_command(command)
         return self._parse_success_response(response)

@@ -3,7 +3,7 @@ class FactorioAPI:
         @staticmethod
         def get_player_position():
             """Get the player's current position."""
-            return "/c rcon.print(game.get_player(1).position)"
+            return "/sc rcon.print(game.get_player(1).position)"
         
         @staticmethod
         def move_to(x: float, y: float):
@@ -12,7 +12,7 @@ class FactorioAPI:
                 x: the x coordinate of the player
                 y: the y coordinate of the player
             """
-            return f"/c game.get_player(1).teleport({{y = {y}, x = {x}}})"
+            return f"/sc game.get_player(1).teleport({{y = {y}, x = {x}}})"
 
     class Entity:
         class EntityStatus:
@@ -61,7 +61,7 @@ class FactorioAPI:
                 filter_params.append(f"position={{ {position_x}, {position_y} }}, radius={radius}")
             filter_string = ", ".join(filter_params)
 
-            return f"""/c local entities = game.surfaces[1].find_entities_filtered{{ {filter_string} }}
+            return f"""/sc local entities = game.surfaces[1].find_entities_filtered{{ {filter_string} }}
             local entity_count = #entities
             if entities and entity_count > 0 then
                 local entity_data = {{}}
@@ -85,7 +85,7 @@ class FactorioAPI:
             """
             inventory = FactorioAPI.Inventory
             # surface.can_place_entity checks according to the entity's collision box, while player.can_place_entity checks according to the player's reach distance and some other factors.
-            return f"""/c local player = game.get_player(1)
+            return f"""/sc local player = game.get_player(1)
             local surface_can_place = game.surfaces[1].can_place_entity{{name='{name}', position={{{x},{y}}}}}
             local player_can_place = player.can_place_entity{{name='{name}', position={{{x},{y}}}}}
             local filter = {{filter="name", name='{name}'}}
@@ -110,7 +110,7 @@ class FactorioAPI:
                 x: the x coordinate of the entity
                 y: the y coordinate of the entity"""
             inventory = FactorioAPI.Inventory
-            return f"""/c local entity = game.surfaces[1].find_entity('{name}', {{{x},{y}}}) 
+            return f"""/sc local entity = game.surfaces[1].find_entity('{name}', {{{x},{y}}}) 
             if entity and game.get_player(1).can_reach_entity(entity) then 
             entity.destroy() rcon.print('Success: Entity {name} removed') {inventory.insert_item(name,1)[3:]}
             elseif not entity then rcon.print('Failed: Entity {name} not found')
@@ -156,9 +156,9 @@ class FactorioAPI:
                 inventory_type(optional): the type of inventory to insert into.("fuel","chest","furnace_source","furnace_result","character_main","character_guns","character_ammo","character_armor","character_trash","assembling_machine_input","assembling_machine_output",)
             """
             if entity == "player":
-                return f"/c game.get_player(1).get_inventory(defines.inventory.{inventory_type}).insert{{name='{item}', count={count}}} rcon.print('Success: {item} added to player {inventory_type}')"
+                return f"/sc game.get_player(1).get_inventory(defines.inventory.{inventory_type}).insert{{name='{item}', count={count}}} rcon.print('Success: {item} added to player {inventory_type}')"
             else:
-                return f"""/c local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
+                return f"""/sc local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
                 if entity then
                     entity.get_inventory(defines.inventory.{inventory_type}).insert{{name='{item}', count={count}}}
                     rcon.print('Success: Item {item} added to {entity} {inventory_type}')
@@ -179,7 +179,7 @@ class FactorioAPI:
                 y: the y coordinate of the entity
             """
             if entity == "player":
-                remove_item_from_player=f"""/c local main_inventory = game.get_player(1).get_main_inventory()
+                remove_item_from_player=f"""/sc local main_inventory = game.get_player(1).get_main_inventory()
                 if main_inventory.get_item_count('{item}') >= {count} then
                     main_inventory.remove({{name='{item}', count={count}}}) 
                     rcon.print('Success: {item} removed from player')
@@ -189,7 +189,7 @@ class FactorioAPI:
                 """
                 return remove_item_from_player
             else:
-                remove_item_from_entity=f"""/c local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
+                remove_item_from_entity=f"""/sc local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
                 if entity then
                     entity.get_inventory(1).remove{{name='{item}', count={count}}}
                     rcon.print('Item {item} removed')
@@ -211,7 +211,7 @@ class FactorioAPI:
                 y: the y coordinate of the entity
             """
             if entity == "player":
-                get_inventory_from_player = f"""/c local inventory = game.get_player(1).get_inventory(defines.inventory.{inventory_type})
+                get_inventory_from_player = f"""/sc local inventory = game.get_player(1).get_inventory(defines.inventory.{inventory_type})
                 if inventory then
                     inventory_json=helpers.table_to_json(inventory.get_contents())
                     rcon.print(inventory_json)
@@ -221,7 +221,7 @@ class FactorioAPI:
                 """
                 return get_inventory_from_player
             else:
-                get_inventory_from_entity = f"""/c local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
+                get_inventory_from_entity = f"""/sc local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
                 if entity then
                     local inventory = entity.get_inventory(defines.inventory.{inventory_type})
                     if inventory then
@@ -266,7 +266,7 @@ class FactorioAPI:
             if limit:
                 filter_params.append(f"limit = {limit}")
             filter_string = ", ".join(filter_params)
-            return f"""/c local tiles = game.surfaces[1].find_tiles_filtered{{ {filter_string} }}
+            return f"""/sc local tiles = game.surfaces[1].find_tiles_filtered{{ {filter_string} }}
             if tiles then
                 local tile_data = {{}}
                 for _, tile in ipairs(tiles) do

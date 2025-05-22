@@ -3,26 +3,9 @@
         "id": "63b86f156c48a127",
         "type": "tab",
         "label": "Factorio Agent Workflow",
-        "disabled": true,
+        "disabled": false,
         "info": "",
         "env": []
-    },
-    {
-        "id": "a8996dfc1cf579d1",
-        "type": "factory-agent-deepseek",
-        "z": "63b86f156c48a127",
-        "name": "Deepseek Player",
-        "model": "deepseek-chat",
-        "temperature": "0.7",
-        "maxTokens": "8192",
-        "x": 570,
-        "y": 660,
-        "wires": [
-            [
-                "68c8874f27d25ec4",
-                "fc044ca934fadc4a"
-            ]
-        ]
     },
     {
         "id": "2418f906f5a18df1",
@@ -52,44 +35,44 @@
                 ]
             },
             {
-                "name": "get_entities",
-                "description": "Find entities in the game based on specified filters.",
+                "name": "search_entities",
+                "description": "Find entities in the game based on specified filters(Always use appropriate filtering parameters to avoid exceeding token limits)",
                 "parameters": [
                     {
                         "name": "name",
                         "type": "string",
-                        "description": "Entity prototype name(s) to filter by"
+                        "description": "[Optional] Entity prototype name(s) to filter by"
                     },
                     {
                         "name": "type",
                         "type": "string",
-                        "description": "Entity type to filter by"
+                        "description": "[Optional] Entity type to filter by"
                     },
                     {
                         "name": "position_x",
                         "type": "number",
-                        "description": "X coordinate of the center of the search circle"
+                        "description": "[Optional] X coordinate of the center of the search circle"
                     },
                     {
                         "name": "position_y",
                         "type": "number",
-                        "description": "Y coordinate of the center of the search circle"
+                        "description": "[Optional] Y coordinate of the center of the search circle"
                     },
                     {
                         "name": "radius",
                         "type": "number",
-                        "description": "Radius of the search circle"
+                        "description": "[Optional with coordinate] Radius of the search circle"
                     },
                     {
                         "name": "limit",
                         "type": "number",
-                        "description": "Maximum number of entities to return"
+                        "description": "[Optional] Maximum number of entities to return"
                     }
                 ]
             },
             {
                 "name": "place_entity",
-                "description": "Place an entity in the game surface.",
+                "description": "Place an entity in the game surface. (Be careful about the collision area to avoid overlap)",
                 "parameters": [
                     {
                         "name": "name",
@@ -109,7 +92,7 @@
                     {
                         "name": "direction",
                         "type": "number",
-                        "description": "The direction (0, 4, 8, 12 for N, E, S, W)"
+                        "description": "The direction (0, 4, 8, 12 for N, E, S, W), default 0"
                     }
                 ]
             },
@@ -226,6 +209,63 @@
                         "description": "The y coordinate of the entity (if not player)"
                     }
                 ]
+            },
+            {
+                "name": "list_supported_entities",
+                "description": "Get a list of all supported entities with their info including dimensions and description ,etc.",
+                "parameters": [
+                    {
+                        "name": "mode",
+                        "type": "string",
+                        "description": "Search mode - default \"all\" for all entities names list, \"type\" for entities of specific type with info, \"search\" for keyword search with info"
+                    },
+                    {
+                        "name": "search_type",
+                        "type": "string",
+                        "description": "When mode=\"type\", specify the entity type to filter"
+                    },
+                    {
+                        "name": "keyword",
+                        "type": "string",
+                        "description": "When mode=\"search\", specify the keyword to search entity names"
+                    }
+                ]
+            },
+            {
+                "name": "list_supported_items",
+                "description": "Get a list of all supported items, may not be all items in the game",
+                "parameters": []
+            },
+            {
+                "name": "find_surface_tile",
+                "description": "Find surface tiles in the current game based on specified filters",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "type": "string",
+                        "description": "[Optional] Tile name to filter by (eg: water, dry-dirt, then the middle is shore)"
+                    },
+                    {
+                        "name": "position_x",
+                        "type": "number",
+                        "description": "[Optional] X coordinate of the center of the search circle"
+                    },
+                    {
+                        "name": "position_y",
+                        "type": "number",
+                        "description": "[Optional] Y coordinate of the center of the search circle"
+                    },
+                    {
+                        "name": "radius",
+                        "type": "number",
+                        "description": "[Optional with coordinate] Radius of the search circle"
+                    },
+                    {
+                        "name": "limit",
+                        "type": "number",
+                        "description": "[Optional] Maximum number of tiles to return"
+                    }
+                ]
             }
         ],
         "agentNode": "global",
@@ -238,11 +278,11 @@
         "type": "factory-agent-states",
         "z": "63b86f156c48a127",
         "name": "Agent Prompt",
-        "systemPrompt": "You are an expert Factorio player, interfacing with the game via API tools. You will keep receiving existing factory status in the game and your objective is to efficiently manage and enlarge the automative factory.\nYou have access to the following API functions:\n- `get_available_entities()`: Lists all placeable entities.\n- `get_available_items()`: Lists all available items.\n- `get_player_position()`: Returns the player's current coordinates.\n- `move_player(x, y)`: Moves the player to the specified coordinates.\n- `find_entities(name=None, type=None, radius=None, position_x=None, position_y=None)`: Locates entities within the game. (Always use appropriate filtering parameters to avoid exceeding token limits.)\n- `place_entity(name, x, y, direction=0)`: Places an entity at the specified coordinates. (if direction specified, must be number like 0, 4, 8, 12 which stands for N, E, S, W)\n- `remove_entity(x, y)`: Removes an entity at the specified coordinates.\n- `insert_item(item, count, entity, x, y)`: Inserts items into an entity's inventory.\n- `remove_item(item, count, entity, x, y)`: Removes items from an entity's inventory.\n- `get_inventory(entity, x, y)`: Retrieves the contents of an entity's inventory.\nAnd for the rule, you can place or insert any legal things that exists in Factorio if you want, but try to move there before do something!\nYour responses must include the following strictly in JSON format:\n- A detailed plan for the next step.\n- The actions to be executed. **Limit the number of actions to a maximum of two per response.**\nExample:\n{\n  \"plan\": \"First, we need to solve the problem of power shortage. To achieve this, we will build more steam generators and make sure they have enough coal supply.\",\n  \"actions\": [\n    {\n      \"command\": \"place_entity\",\n      \"params\": {\n        \"name\": \"steam-engine\",\n        \"x\": 12,\n        \"y\": 20,\n        \"direction\": \"4\"\n      }\n    },\n    {\n      \"command\": \"insert_item\",\n      \"params\": {\n        \"item\": \"coal\",\n        \"count\": 50,\n        \"entity\": \"boiler\",\n        \"x\": 10,\n        \"y\": 15\n      }\n    }\n  ]\n}\nWhen formulating your plan, prioritize:\n-Scalable factory layout: Design for future expansion and efficiency.\n-Automation: Automate manual processes wherever possible.\n-Regularity: Make the factory as orderly as possible, so that each machine area forms a 9*9 area around the substation.",
-        "environmentDescription": "The current map features abundant iron and copper ore resources, but relatively scarce oil resources. Your current factory has a basic iron plate production line and a car assembly line, but suffers from insufficient resources mining, goods production and factory size. You must use the API tools to resolve these and enlarge the factory as large as possible.\nRemember that you can only interact with the game world through the provided API tools. Ensure that the JSON object is the only valid object within your response.\nLimit the number of actions to a maximum of three per response.",
+        "systemPrompt": "You are an expert Factorio player, interfacing with the game via API tools. Your objective is to efficiently manage and enlarge the automative factory. You can place or insert any legal things that exists in Factorio if you want, but try to move player there before doing something! Your responses must be strictly in JSON format with a \"plan\" describing the next step and a maximum of 3 \"actions\" to be executed. \ne.g. {\"plan\": \"Set up power generation plant; Find location of shore to place offshore-pump first, use find_surface_tile() and place_entity()\",\n  \"actions\": [\n    {\n      \"command\": \"place_entity\",\n      \"params\": {\n        \"name\": \"steam-engine\",\n        \"x\": 12,\n        \"y\": 20,\n        \"direction\": \"4\"\n      }, ...\n    }\n  ]\n}\nGeneral Guidelines: 1. Focus on automating the flow of resources using belts and inserters. 2. Group similar buildings together (e.g., all stone furnaces in one area, all burner mining drills on a single patch). Plan for potential belt routing.",
+        "environmentDescription": "The current map features abundant iron and copper ore resources. You are starting with a completely empty map. Your immediate priority is to establish a basic burner-driven power generation and coal mining setup to begin automating the factory. Remember that you can only interact with the game world through the provided API action tools. Ensure that the JSON object is the only valid object within your response. Limit the number of actions to a maximum of three per response.",
         "initialDelay": "2",
         "x": 420,
-        "y": 560,
+        "y": 580,
         "wires": [
             [
                 "39ce0b1a89deda24",
@@ -311,8 +351,8 @@
         "correl": "",
         "expiry": "",
         "broker": "6f6a71de9985f35d",
-        "x": 960,
-        "y": 700,
+        "x": 1020,
+        "y": 660,
         "wires": []
     },
     {
@@ -327,7 +367,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 730,
+        "x": 790,
         "y": 560,
         "wires": [
             [
@@ -341,7 +381,7 @@
         "type": "debug",
         "z": "63b86f156c48a127",
         "name": "debug 4",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -349,8 +389,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 940,
-        "y": 620,
+        "x": 1020,
+        "y": 600,
         "wires": []
     },
     {
@@ -424,8 +464,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 880,
-        "y": 800,
+        "x": 800,
+        "y": 700,
         "wires": []
     },
     {
@@ -441,7 +481,8 @@
         "wires": [
             [
                 "fc044ca934fadc4a",
-                "68c8874f27d25ec4"
+                "68c8874f27d25ec4",
+                "aeb1018fa42fe9e9"
             ]
         ]
     },
@@ -480,6 +521,62 @@
         "statusType": "auto",
         "x": 540,
         "y": 800,
+        "wires": []
+    },
+    {
+        "id": "aeb1018fa42fe9e9",
+        "type": "function",
+        "z": "63b86f156c48a127",
+        "name": "Extract Plan",
+        "func": "try {\n  const content = msg.result.replace('```json\\n','').replace('```','');\n  const contentJson = JSON.parse(content);\n  const plan = contentJson.plan;\n\n  const newMsg = {\n    payload: plan\n  };\n  return newMsg;\n\n} catch (error) {\n  node.error(\"Error parsing JSON: \" + error);\n  return null;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 800,
+        "wires": [
+            [
+                "e036979cc91db9a0",
+                "b1bdb1ad7b15e37a"
+            ]
+        ]
+    },
+    {
+        "id": "e036979cc91db9a0",
+        "type": "mqtt out",
+        "z": "63b86f156c48a127",
+        "name": "",
+        "topic": "Factorio/Plans",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "6f6a71de9985f35d",
+        "x": 1000,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "b1bdb1ad7b15e37a",
+        "type": "debug",
+        "z": "63b86f156c48a127",
+        "name": "debug 1",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 820,
         "wires": []
     },
     {
