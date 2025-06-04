@@ -39,7 +39,6 @@ class DocProcessor:
 
     def process_api_doc(self, api_json: Dict) -> List[Dict]:
         chunks = []
-        
         # Process classes
         for class_data in api_json.get("classes", {}):
             # Process class description
@@ -216,23 +215,43 @@ class DocProcessor:
 
         return "\n".join(text_parts)
 
+    def process_wiki_doc(self, wiki_json: Dict) -> List[Dict]:
+        """Process wiki document"""
+        chunks = []
+        for wiki_data in wiki_json:
+            wiki_chunks = self.long_text_splitter.split_text(wiki_data.get("content"))
+            for i, chunk in enumerate(wiki_chunks):
+                chunks.append({
+                    "type": "wiki",
+                    "name": wiki_data.get("title"),
+                    # "name": wiki_data.get("title") + f"-{i+1}",
+                    "content": chunk,
+                })
+        return chunks
+
 def main():
     # Define paths
-    input_file = os.path.join("data", "raw", "runtime-api.json")
-    output_file = os.path.join("data", "processed", "chunks", "api_chunks.json")
+    # input_file = os.path.join("data", "raw", "runtime-api.json")
+    wiki_file = os.path.join("data", "raw", "wiki_pages.json")
+    output_file = os.path.join("data", "processed", "chunks", "wiki_chunks.json")
 
-    # Load API documentation
-    with open(input_file, 'r', encoding='utf-8') as f:
-        api_json = json.load(f)
+    # # Load API documentation
+    # with open(input_file, 'r', encoding='utf-8') as f:
+    #     api_json = json.load(f)
+
+    with open(wiki_file, 'r', encoding='utf-8') as f:
+        wiki_json = json.load(f)
 
     # Process documentation
     processor = DocProcessor(chunk_size=256, chunk_overlap=64)
-    chunks = processor.process_api_doc(api_json)
+    # api_chunks = processor.process_api_doc(api_json)
+    wiki_chunks = processor.process_wiki_doc(wiki_json)
+    # chunks = api_chunks + wiki_chunks
 
     # Save chunks
     print(f"Saving chunks to {output_file}...")
     with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(chunks, f, indent=2, ensure_ascii=False)
+        json.dump(wiki_chunks, f, indent=2, ensure_ascii=False)
 
     print("Done!")
 

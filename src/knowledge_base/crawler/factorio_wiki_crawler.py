@@ -57,8 +57,7 @@ class FactorioWikiCrawler(BaseCrawler):
                 self.pages.append({
                     'url': url,
                     'title': self._extract_title(soup),
-                    'content': content,
-                    'type': 'wiki'
+                    'content': content
                 })
 
         # Find and crawl links
@@ -105,6 +104,7 @@ class FactorioWikiCrawler(BaseCrawler):
 
         # Skip special pages and fragments
         skip_patterns = [
+            r'/Main_Page',
             r'/Space_Age',
             r'/Factorio:',
             r'/Special:',
@@ -151,94 +151,79 @@ class FactorioWikiCrawler(BaseCrawler):
         # Remove unwanted elements immediately
         for element in content_div.find_all(['script', 'style', 'sup']):
             element.decompose()
+            
+        # Remove reference section and retrieved from text
+        for element in content_div.find_all('div', class_="printfooter"):
+            if element.get('id') == 'mw-references-wrap' or 'Retrieved from' in element.get_text():
+                element.decompose()
         
         # Handle "See also", "Gallery", "History", and their subsequent content
+        all_h2_headings = content_div.find_all('h2')
         sections_to_filter_out = ['See also', 'Gallery', 'History']
-        elements_to_remove = []
-        for heading in content_div.find_all('h2'):
+        
+        for heading in all_h2_headings:
             heading_span = heading.find('span', class_='mw-headline')
             if heading_span and heading_span.get_text(strip=True) in sections_to_filter_out:
-                elements_to_remove.append(heading)
-                current_node = heading.next_sibling
-                while current_node:
-                    if isinstance(current_node, Tag) and current_node.name == 'h2':
-                        break # Stop at the next h2
-                    elements_to_remove.append(current_node)
-                    current_node = current_node.next_sibling
-        for element in elements_to_remove:
-            element.decompose()
-        
-        # Handle inline "Space Age expansion exclusive feature" declarations
-        for i_tag in content_div.find_all('i'):
-            space_age_link = i_tag.find('a', href="/Space_Age", title="Space Age")
-            if space_age_link and "Space Age expansion exclusive feature" in i_tag.get_text():
-                i_tag.decompose()
-        
-        infobox_output_parts = []
-        infobox_table = content_div.find('table')
-        if infobox_table:
-            # process all cells with icon
-            for tr in infobox_table.find_all('tr'):
-                recipe_cell = tr.find('td', class_='infobox-vrow-value')
-                if recipe_cell:
-                    recipe_parts = []
-                    # split input and output
-                    parts = str(recipe_cell).split('→')
-                    if len(parts) == 2:
-                        # process input part
-                        input_parts = []
-                        for icon_div in BeautifulSoup(parts[0], 'html.parser').find_all('div', class_='factorio-icon'):
-                            item_link = icon_div.find('a')
-                            quantity_div = icon_div.find('div', class_='factorio-icon-text')
-                            if item_link and quantity_div:
-                                item_name = item_link.get('title', '').replace('_', ' ')
-                                quantity = quantity_div.get_text(strip=True)
-                                input_parts.append(f"{quantity} {item_name}")
-                        
-                        # process output part
-                        output_parts = []
-                        for icon_div in BeautifulSoup(parts[1], 'html.parser').find_all('div', class_='factorio-icon'):
-                            item_link = icon_div.find('a')
-                            quantity_div = icon_div.find('div', class_='factorio-icon-text')
-                            if item_link and quantity_div:
-                                item_name = item_link.get('title', '').replace('_', ' ')
-                                quantity = quantity_div.get_text(strip=True)
-                                output_parts.append(f"{quantity} {item_name}")
-                        
-                        if input_parts and output_parts:
-                            infobox_output_parts.append(f"{' + '.join(input_parts)} → {' + '.join(output_parts)}")
-                    else:
-                        # process cells without arrow
-                        for icon_div in recipe_cell.find_all('div', class_='factorio-icon'):
-                            item_link = icon_div.find('a')
-                            quantity_div = icon_div.find('div', class_='factorio-icon-text')
-                            if item_link and quantity_div:
-                                item_name = item_link.get('title', '').replace('_', ' ')
-                                quantity = quantity_div.get_text(strip=True)
-                                recipe_parts.append(f"{quantity} {item_name}")
-                        if recipe_parts:
-                            infobox_output_parts.append(' + '.join(recipe_parts))
-            
-            # process other information rows
-            for tr in infobox_table.find_all('tr'):
-                tds = tr.find_all('td')
-                if len(tds) == 2:
-                    key_p = tds[0].find('p')
-                    value_p = tds[1].find('p')
-                    if key_p and value_p:
-                        key_text = key_p.get_text(strip=True)
-                        value_text = value_p.get_text(strip=True)
-                        if key_text and value_text:
-                            infobox_output_parts.append(f"{key_text}: {value_text}")
-            
-            infobox_table.extract()
+                # Find next heading
+                next_heading = heading.find_next_sibling('h2')
+                # If found next heading, remove everything between current heading and next heading
+                if next_heading:
+                    current = heading
+                    while current and current != next_heading:
+                        next_node = current.next_sibling
+                        current.decompose()
+                        current = next_node
+                else:
+                    # If no next heading, remove everything from current heading to end
+                    current = heading
+                    while current:
+                        next_node = current.next_sibling
+                        current.decompose()
+                        current = next_node
 
-        main_body_text = content_div.get_text(separator=' ', strip=True)
-        
-        final_content = ' '.join(infobox_output_parts + [main_body_text])
-        
+        # Process all tables in the infobox
+        infobox_output_parts = []
+        for div in content_div.find_all('div', class_='infobox'):
+            for table in div.find_all('table', recursive=False):
+                if table.get('class') and 'hidden' in table.get('class'):
+                    table.decompose()
+                    continue
+                # Process each row in the table
+                for tr in table.find('tbody').find_all('tr', recursive=False):
+                    row_parts = []
+                    for cell in tr.find_all(['td', 'th']):
+                        if 'Storage siz e' in cell.get_text(strip=True) or 'Health' in cell.get_text(strip=True) or 'Map color' in cell.get_text(strip=True) or 'Rocket capacity' in cell.get_text(strip=True):
+                            cell.decompose()
+                            break
+                        # Replace all links with their titles
+                        for link in cell.find_all('a'):
+                            if link.get('title'):
+                                link.replace_with(link.get('title').replace(' ', '_'))
+                        # Get cell text
+                        cell_text = cell.get_text(strip=True)
+                        if cell_text:
+                            cell_text = re.sub(r'(\d+)([a-zA-Z])', r'\1 \2', cell_text)
+                            cell_text = re.sub(r'([a-zA-Z])(\d+)', r'\1 \2', cell_text)
+                            cell_text = re.sub(r'([^ ])→', r'\1 →', cell_text)
+                            cell_text = re.sub(r'→([^ ])', r'→ \1', cell_text)
+                            row_parts.append(cell_text)
+                    if row_parts:
+                        infobox_output_parts.append(' '.join(row_parts))
+                        infobox_output_parts.append(' | ')
+                table.extract()  # Remove the table from the DOM after processing
+            div.extract()
+        main_body_text = content_div.get_text(separator='\n', strip=True)
+
+        # Combine all parts with clear separation
+        final_content = ''
+        if infobox_output_parts:
+            final_content += ''.join(infobox_output_parts) + '\n\n'
+        final_content += main_body_text
+
+        # Clean up excessive whitespace
         final_content = re.sub(r'\s+', ' ', final_content)
-        
+        final_content = re.sub(r'\n\s*\n', '\n', final_content)
+
         return final_content.strip()
     
     def _extract_title(self, soup) -> str:

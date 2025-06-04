@@ -15,5 +15,6 @@ async def test_wiki_crawler(url: str):
     crawler.save_to_json('wiki_pages_test.json')
 
 if __name__ == "__main__":
-    url = "https://wiki.factorio.com/Pipe_to_ground"
+    # url = "https://wiki.factorio.com/Pipe_to_ground"
+    url="https://wiki.factorio.com/Pipe_to_ground"
     asyncio.run(test_wiki_crawler(url))

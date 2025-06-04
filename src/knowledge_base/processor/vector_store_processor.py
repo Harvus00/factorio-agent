@@ -68,9 +68,12 @@ class VectorStoreProcessor:
 
 def main():
     # define file paths
+    # input_file = "data/processed/embeddings/wiki_chunks_with_embeddings.json"
+    # index_file = "data/processed/kb/wiki_faiss_index.bin"
+    # chunks_file = "data/processed/kb/wiki_chunks_data.pkl"
     input_file = "data/processed/embeddings/api_chunks_with_embeddings.json"
-    index_file = "data/processed/embeddings/faiss_index.bin"
-    chunks_file = "data/processed/embeddings/chunks_data.pkl"
+    index_file = "data/processed/kb/api_faiss_index.bin"
+    chunks_file = "data/processed/kb/api_chunks_data.pkl"
     
     # load chunks
     print(f"Loading chunks from {input_file}...")

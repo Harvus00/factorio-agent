@@ -28,8 +28,8 @@ class EmbeddingProcessor:
 
 def main():
     # define file paths
-    input_file = os.path.join("data", "processed", "chunks", "api_chunks.json")
-    output_file = os.path.join("data", "processed", "embeddings", "api_chunks_with_embeddings.json")
+    input_file = os.path.join("data", "processed", "chunks", "wiki_chunks.json")
+    output_file = os.path.join("data", "processed", "embeddings", "wiki_chunks_with_embeddings.json")
     
     # load chunks
     print(f"Loading chunks from {input_file}...")
