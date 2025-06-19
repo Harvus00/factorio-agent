@@ -1,21 +1,29 @@
 import logging
 import toml
 import asyncio
-from src.agent import Agent, Runner, set_default_openai_key
-from src.api.agent_tools import (
-    get_available_prototypes,
+import os
+from agents import Agent, Runner, set_default_openai_key, set_trace_processors
+from langsmith.wrappers import OpenAIAgentsTracingProcessor
+from agent.tool.agent_tools import (
     get_player_position,
     move_player,
-    find_entities,
+    search_entities,
     place_entity,
     remove_entity,
     insert_item,
     remove_item,
-    get_inventory
+    get_inventory,
+    query_api_knowledge_base
 )
 
 config = toml.load("config/config.toml")
 set_default_openai_key(config["openai"]["OPENAI_API_KEY"])
+
+# LangSmith environment variables for tracing
+os.environ["LANGSMITH_TRACING"] = str(config["langsmith"]["tracing"]).lower()
+os.environ["LANGSMITH_ENDPOINT"] = config["langsmith"]["endpoint"]
+os.environ["LANGSMITH_API_KEY"] = config["langsmith"]["api_key"]
+os.environ["LANGSMITH_PROJECT"] = config["langsmith"]["project"]
 
 # Configure logging
 logging.basicConfig(
@@ -31,15 +39,15 @@ factorio_agent = Agent(
     handoff_description="Specialist agent for playing Factorio.",
     instructions=config["agent"]["system_prompt"],
     tools=[
-        get_available_prototypes,
         get_player_position,
         move_player,
-        find_entities,
+        search_entities,
         place_entity,
         remove_entity,
         insert_item,
         remove_item,
-        get_inventory
+        get_inventory,
+        query_api_knowledge_base
     ],
 )
 """TODO:
@@ -87,4 +95,6 @@ async def main():
         logger.info("Agent stopped")
 
 if __name__ == "__main__":
+    # LangSmith tracing processor
+    set_trace_processors([OpenAIAgentsTracingProcessor()])
     asyncio.run(main())

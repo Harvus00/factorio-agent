@@ -6,13 +6,29 @@ with the Factorio game through the FactorioInterface.
 """
 
 from typing import List, Dict, Any, Optional, Union, Tuple
-from src.agent import function_tool
-from src.api.factorio_interface import FactorioInterface
+from agents import function_tool
+from api.factorio_interface import FactorioInterface
 import toml
+from knowledge_base.processor.query_processor import QueryProcessor
 
-# Create a global interface instance
-config = toml.load("config/config.toml")
-factorio = FactorioInterface(config["rcon"]["host"], config["rcon"]["port"], config["rcon"]["password"])
+# Global variables for lazy loading
+_factorio_interface = None
+_config = None
+
+def get_factorio_interface():
+    """Get the factorio interface instance, creating it if necessary"""
+    global _factorio_interface, _config
+    
+    if _factorio_interface is None:
+        if _config is None:
+            _config = toml.load("config/config.toml")
+        _factorio_interface = FactorioInterface(
+            _config["rcon"]["host"], 
+            _config["rcon"]["port"], 
+            _config["rcon"]["password"]
+        )
+    
+    return _factorio_interface
 
 # @function_tool
 # def get_available_prototypes() -> Dict[str, List[str]]:
@@ -32,6 +48,7 @@ def get_player_position() -> Dict[str, float]:
     Returns:
         Dict with 'x' and 'y' coordinates
     """
+    factorio = get_factorio_interface()
     position = factorio.get_player_position()
     if position:
         return position
@@ -49,6 +66,7 @@ def move_player(x: float, y: float) -> str:
     Returns:
         Status message
     """
+    factorio = get_factorio_interface()
     success = factorio.move_player(x, y)
     return "Player moved successfully" if success else "Failed to move player"
 
@@ -64,7 +82,7 @@ def search_entities(name: Optional[str] = None,
     
     Args:
         name: Entity prototype name to filter by
-        type: Entity type to filter by
+        type: Entity type to filter by (make sure valid)
         radius: Radius of the search circle
         position_x: X coordinate of the center of the search circle
         position_y: Y coordinate of the center of the search circle
@@ -72,6 +90,8 @@ def search_entities(name: Optional[str] = None,
     Returns:
         List of entity data dictionaries
     """
+    factorio = get_factorio_interface()
+    
     # If position not specified, use player position
     if radius and (position_x is None or position_y is None):
         player_pos = factorio.get_player_position()
@@ -102,6 +122,7 @@ def place_entity(name: str, x: float, y: float, direction: int) -> str:
     Returns:
         Status message
     """
+    factorio = get_factorio_interface()
     if direction is None:
         direction = 0  # Default to North
     success, message = factorio.place_entity(name, x, y, direction)
@@ -120,6 +141,7 @@ def remove_entity(name: str, x: float, y: float) -> str:
     Returns:
         Status message
     """
+    factorio = get_factorio_interface()
     success, message = factorio.remove_entity(name, x, y)
     return message
 
@@ -141,6 +163,7 @@ def insert_item(item: str, count: int,
     Returns:
         Status message
     """
+    factorio = get_factorio_interface()
     # If entity is not specified, use "player"
     if entity is None:
         entity = "player"
@@ -165,6 +188,7 @@ def remove_item(item: str, count: int,
     Returns:
         Status message
     """
+    factorio = get_factorio_interface()
     # If entity is not specified, use "player"
     if entity is None:
         entity = "player"
@@ -173,6 +197,7 @@ def remove_item(item: str, count: int,
 
 @function_tool
 def get_inventory(entity: str,
+                 inventory_type: str = None,
                  x: Optional[float] = None, 
                  y: Optional[float] = None) -> Dict[str, int]:
     """
@@ -180,18 +205,20 @@ def get_inventory(entity: str,
     
     Args:
         entity: The name of the entity to get from (default: "player")
+        inventory_type: The type of inventory to get (if not player, can query 'defines.inventory' from wiki knowledge base)
         x: The x coordinate of the entity (if not player)
         y: The y coordinate of the entity (if not player)
         
     Returns:
         Dictionary mapping item names to counts
     """
+    factorio = get_factorio_interface()
     # If entity is not specified, use "player"
     if entity is None:
         entity = "player"
-    return factorio.get_inventory("character_main", entity, x, y)
+    return factorio.get_inventory(entity, inventory_type, x, y)
 
-@function_tool
+# @function_tool
 def list_supported_entities(mode: str = "all", search_type: str = None, keyword: str = None) -> List[str]:
     """
     Get a list of all supported entities, may not be all entities in the game.
@@ -205,9 +232,10 @@ def list_supported_entities(mode: str = "all", search_type: str = None, keyword:
     Returns:
         List of supported entity names
     """
+    factorio = get_factorio_interface()
     return factorio.list_supported_entities(mode, search_type, keyword)
 
-@function_tool
+# @function_tool
 def list_supported_items() -> Dict[str, List[str]]:
     """
     Get a list of all supported items, may not be all items in the game.
@@ -215,6 +243,7 @@ def list_supported_items() -> Dict[str, List[str]]:
     Returns:
         Dictionary with keys 'items', each containing a list of valid names
     """
+    factorio = get_factorio_interface()
     return factorio.list_supported_items()
 
 @function_tool
@@ -236,4 +265,46 @@ def find_surface_tile(name: Optional[str] = None,
     Returns:
         List of tile data dictionaries
     """
+    factorio = get_factorio_interface()
     return factorio.find_surface_tile(name, position_x, position_y, radius, limit=limit)
+
+@function_tool
+def query_api_knowledge_base(query: str, k: int = 5) -> List[Dict]:
+    """
+    Query the api documentation knowledge base.
+
+    Args:
+        query: The query to search for
+        k: The number of results to return
+
+    Returns:
+        List of results
+    """
+    if not hasattr(query_api_knowledge_base, "processor"):
+        processor = QueryProcessor()
+        processor.load_vector_store("data/processed/kb/api_faiss_index.bin", "data/processed/kb/api_chunks_data.pkl")
+        query_api_knowledge_base.processor = processor
+    else:
+        processor = query_api_knowledge_base.processor
+
+    return processor.query(query, k)
+
+@function_tool
+def query_wiki_knowledge_base(query: str, k: int = 5) -> List[Dict]:
+    """
+    Query the wiki documentation knowledge base.
+
+    Args:
+        query: The query to search for
+        k: The number of results to return
+
+    Returns:
+        List of results
+    """
+    if not hasattr(query_wiki_knowledge_base, "processor"):
+        processor = QueryProcessor()
+        processor.load_vector_store("data/processed/kb/wiki_faiss_index.bin", "data/processed/kb/wiki_chunks_data.pkl")
+        query_wiki_knowledge_base.processor = processor
+    else:
+        processor = query_wiki_knowledge_base.processor
+    return processor.query(query, k)

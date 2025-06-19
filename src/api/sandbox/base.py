@@ -101,7 +101,7 @@ class FactorioAPI:
                 end
             end
             """
-        
+        # TODO: catch error when insert item after remove entity
         @staticmethod
         def remove_entity(name: str, x: float, y: float):
             """Remove an entity in the game.
@@ -111,8 +111,11 @@ class FactorioAPI:
                 y: the y coordinate of the entity"""
             inventory = FactorioAPI.Inventory
             return f"""/sc local entity = game.surfaces[1].find_entity('{name}', {{{x},{y}}}) 
-            if entity and game.get_player(1).can_reach_entity(entity) then 
-            entity.destroy() rcon.print('Success: Entity {name} removed') {inventory.insert_item(name,1)[3:]}
+            local player = game.get_player(1)
+            if entity and player.can_reach_entity(entity) then 
+                entity.destroy() 
+                rcon.print('Success: Entity {name} removed') 
+                {inventory.insert_item(name,1,entity="player")[3:]}
             elseif not entity then rcon.print('Failed: Entity {name} not found')
             else rcon.print('Failed: Cannot reach {name}')
             end
@@ -144,7 +147,7 @@ class FactorioAPI:
         #     return inventory_types
         
         @staticmethod
-        def insert_item(item: str, count: int,inventory_type: str = "character_main", entity: str = "player", x: float = None, y: float = None):
+        def insert_item(item: str, count: int,entity: str = "player",inventory_type: str = "character_main", x: float = None, y: float = None):
             """Insert certain numbers of items into entity, default insert into player main inventory.
             if into other entities inventory, specify the name and position of this entity
             Args:
@@ -201,7 +204,7 @@ class FactorioAPI:
         
  
         @staticmethod
-        def get_inventory(inventory_type: str, entity: str = "player", x: float = None, y: float = None):
+        def get_inventory(entity: str = "player", inventory_type: str = None, x: float = None, y: float = None):
             """Get inventory content from entity, default get player main inventory. 
             if from other entities inventory, specify the name and position of this entity
             Args:
@@ -211,12 +214,12 @@ class FactorioAPI:
                 y: the y coordinate of the entity
             """
             if entity == "player":
-                get_inventory_from_player = f"""/sc local inventory = game.get_player(1).get_inventory(defines.inventory.{inventory_type})
+                get_inventory_from_player = f"""/sc local inventory = game.get_player(1).get_main_inventory()
                 if inventory then
                     inventory_json=helpers.table_to_json(inventory.get_contents())
                     rcon.print(inventory_json)
                 else
-                    rcon.print('Failed: Inventory {inventory_type} not found for player.')
+                    rcon.print('Failed: Main inventory not found for player.')
                 end
                 """
                 return get_inventory_from_player

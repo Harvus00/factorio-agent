@@ -1,0 +1,53 @@
+{
+  "tools": {
+    "auto_assembler_placement_tool": {
+      "description": "Automatically places assemblers in a configurable grid around the player.",
+      "parameters": {
+        "assembler_name": "assembling-machine-1",
+        "grid_width": 5,
+        "grid_height": 3,
+        "spacing": 3
+      },
+      "functionality": "Automatically places assemblers in a configurable grid around the player.",
+      "api_requirements": [],
+      "created_at": "2025-06-19T15:13:16.728492",
+      "version": "1.0.0",
+      "lua_file_path": "src/agent/tool/generated/auto_assembler_placement_tool.lua",
+      "python_file_path": "src/agent/tool/generated/auto_assembler_placement_tool.py",
+      "script_type": "factorio_lua"
+    },
+    "insert_fuel_into_mining_drill": {
+      "description": "Inserts specified fuel into a burner mining drill located at given coordinates (x, y) on the main surface.",
+      "parameters": {
+        "x_position": "number",
+        "y_position": "number",
+        "fuel_item_name": "string",
+        "fuel_quantity": "number"
+      },
+      "functionality": "Inserts specified fuel into a burner mining drill located at given coordinates (x, y) on the main surface.",
+      "api_requirements": [],
+      "created_at": "2025-06-19T15:14:30.291358",
+      "version": "1.0.0",
+      "lua_file_path": "src/agent/tool/generated/insert_fuel_into_mining_drill.lua",
+      "python_file_path": "src/agent/tool/generated/insert_fuel_into_mining_drill.py",
+      "script_type": "factorio_lua"
+    },
+    "insert_wood_into_mining_drill": {
+      "description": "Inserts one unit of wood into the fuel inventory of a burner mining drill at specified coordinates.",
+      "parameters": {
+        "x_position": "number",
+        "y_position": "number"
+      },
+      "functionality": "Inserts one unit of wood into the fuel inventory of a burner mining drill at specified coordinates.",
+      "api_requirements": [],
+      "created_at": "2025-06-19T15:14:53.140079",
+      "version": "1.0.0",
+      "lua_file_path": "src/agent/tool/generated/insert_wood_into_mining_drill.lua",
+      "python_file_path": "src/agent/tool/generated/insert_wood_into_mining_drill.py",
+      "script_type": "factorio_lua"
+    }
+  },
+  "versions": {},
+  "dependencies": {},
+  "usage_history": {}
+}

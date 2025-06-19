@@ -10,8 +10,8 @@ import json
 import logging
 from typing import Optional, List, Dict, Any, Union, Tuple
 import factorio_rcon as rcon
-from src.api.sandbox.base import FactorioAPI
-from src.api.prototype import get_entity_names, get_item_names, is_valid_entity, is_valid_item
+from api.sandbox.base import FactorioAPI
+from api.prototype import get_entity_names, get_item_names, is_valid_entity, is_valid_item
 
 # Configure logging
 logger = logging.getLogger('factorio_interface')
@@ -268,26 +268,26 @@ class FactorioInterface:
         response = self._send_command(command)
         return self._parse_success_response(response)
     
-    def get_inventory(self, inventory_type: str = "character_main", 
-                     entity: str = "player", 
+    def get_inventory(self, entity: str = "player", 
+                     inventory_type: str = None,
                      x: Optional[float] = None, 
                      y: Optional[float] = None) -> Dict[str, int]:
         """
         Get inventory contents.
         
         Args:
-            inventory_type: The type of inventory to get
             entity: The name of the entity to get from
+            inventory_type: The type of inventory to get (if not player, can query 'defines.inventory' from wiki knowledge base)
             x: The x coordinate of the entity (if not player)
             y: The y coordinate of the entity (if not player)
             
         Returns:
             Dict[str, int]: Dictionary mapping item names to counts
         """
-        command = self.api.Inventory.get_inventory(inventory_type, entity, x, y)
+        command = self.api.Inventory.get_inventory(entity, inventory_type, x, y)
         response = self._send_command(command)
-        inventory = self._parse_json_response(response)
-        return inventory if inventory else {}
+        # inventory = self._parse_json_response(response)
+        return response if response else {}
 
     def list_supported_entities(self, mode: str = "all", search_type: str = None, keyword: str = None):
         """
@@ -302,7 +302,7 @@ class FactorioInterface:
         Returns:
             List of entity names or Dict containing matched entity names and their info
         """
-        from src.api.prototype import get_entity_names, get_entity_by_type, get_entity_info
+        from api.prototype import get_entity_names, get_entity_by_type, get_entity_info
         
         # Get all entities by default
         if mode == "all":

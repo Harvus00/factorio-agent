@@ -78,8 +78,8 @@ class QueryProcessor:
 
 def main():
     # define file paths
-    index_file = "data/processed/kb/all_faiss_index.bin"
-    chunks_file = "data/processed/kb/all_chunks_data.pkl"
+    index_file = "data/processed/faiss_index.bin"
+    chunks_file = "data/processed/chunks_data.pkl"
     
     # create query processor
     processor = QueryProcessor()
