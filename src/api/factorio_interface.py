@@ -23,7 +23,7 @@ class FactorioInterface:
     and response parsing.
     """
     
-    def __init__(self, host: str = "127.0.0.1", port: int = 8088, password: str = "lvshrd"):
+    def __init__(self, host: str = "127.0.0.1", port: int = 8088, password: str = "lvshrd", message: str = "Hello, World!"):
         """
         Initialize the Factorio interface.
         
@@ -34,7 +34,7 @@ class FactorioInterface:
         """
         self.rcon_client = rcon.RCONClient(host, port, password)
         self.api = FactorioAPI()
-        self._send_command("game.print('Hello, World!')")
+        self._send_command(f"/sc game.print('{message}')")
     
     def _send_command(self, command: str) -> str:
         """
@@ -219,8 +219,8 @@ class FactorioInterface:
     
     # Inventory-related methods
     def insert_item(self, item: str, count: int, 
-                   inventory_type: str = "character_main", 
                    entity: str = "player", 
+                   inventory_type: str = None, 
                    x: Optional[float] = None, 
                    y: Optional[float] = None) -> Tuple[bool, str]:
         """
@@ -240,7 +240,7 @@ class FactorioInterface:
         # if not is_valid_item(item):
         #     return False, f"Invalid item name: {item}"
             
-        command = self.api.Inventory.insert_item(item, count, inventory_type, entity, x, y)
+        command = self.api.Inventory.insert_item(item, count, entity, inventory_type, x, y)
         response = self._send_command(command)
         return self._parse_success_response(response)
     

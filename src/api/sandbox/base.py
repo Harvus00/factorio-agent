@@ -147,7 +147,7 @@ class FactorioAPI:
         #     return inventory_types
         
         @staticmethod
-        def insert_item(item: str, count: int,entity: str = "player",inventory_type: str = "character_main", x: float = None, y: float = None):
+        def insert_item(item: str, count: int,entity: str = "player",inventory_type: str = None, x: float = None, y: float = None):
             """Insert certain numbers of items into entity, default insert into player main inventory.
             if into other entities inventory, specify the name and position of this entity
             Args:
@@ -159,7 +159,7 @@ class FactorioAPI:
                 inventory_type(optional): the type of inventory to insert into.("fuel","chest","furnace_source","furnace_result","character_main","character_guns","character_ammo","character_armor","character_trash","assembling_machine_input","assembling_machine_output",)
             """
             if entity == "player":
-                return f"/sc game.get_player(1).get_inventory(defines.inventory.{inventory_type}).insert{{name='{item}', count={count}}} rcon.print('Success: {item} added to player {inventory_type}')"
+                return f"/sc game.get_player(1).get_main_inventory().insert{{name='{item}', count={count}}} rcon.print('Success: {item} added to player')"
             else:
                 return f"""/sc local entity = game.surfaces[1].find_entity('{entity}', {{{x},{y}}})
                 if entity then

@@ -148,6 +148,7 @@ def remove_entity(name: str, x: float, y: float) -> str:
 @function_tool
 def insert_item(item: str, count: int, 
                entity: str,
+               inventory_type: Optional[str] = None,
                x: Optional[float] = None, 
                y: Optional[float] = None) -> str:
     """
@@ -157,6 +158,7 @@ def insert_item(item: str, count: int,
         item: The item name to insert
         count: The count of the item
         entity: The name of the entity to insert into (default: "player")
+        inventory_type: The type of inventory to insert(if not player, specify the inventory type eg."fuel","chest","furnace_source","furnace_result","character_main","character_guns","character_ammo","character_armor","character_trash","assembling_machine_input","assembling_machine_output",)
         x: The x coordinate of the entity (if not player)
         y: The y coordinate of the entity (if not player)
         
@@ -167,7 +169,7 @@ def insert_item(item: str, count: int,
     # If entity is not specified, use "player"
     if entity is None:
         entity = "player"
-    success, message = factorio.insert_item(item, count, "character_main", entity, x, y)
+    success, message = factorio.insert_item(item, count, entity, inventory_type, x, y)
     return message
 
 @function_tool

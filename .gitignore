@@ -5,3 +5,4 @@ config.toml
 *.egg-info
 *.html
 tests/
+src/agent/tool/generated/*
