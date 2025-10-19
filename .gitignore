@@ -6,3 +6,4 @@ config.toml
 *.html
 tests/
 src/agent/tool/generated/*
+config/COPY.PS1

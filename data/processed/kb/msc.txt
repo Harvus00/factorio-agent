@@ -1,0 +1,2 @@
+Get-ChildItem -Path C:\ -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*profile*" }
+
